@@ -3,12 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:libraryapp/models/api_service.dart';
 import 'package:libraryapp/models/book.dart';
 import 'package:libraryapp/components/button.dart';
-//import 'package:libraryapp/models/rent.dart';
 import 'package:libraryapp/theme/colors.dart';
 import 'package:libraryapp/pages/book_details_page.dart';
 import 'package:libraryapp/pages/search_page.dart';
-//import 'package:provider/provider.dart';
-//import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -20,14 +18,15 @@ class MenuPage extends StatefulWidget {
 class _MenuPageState extends State<MenuPage> {
   List<Book> bookMenu = [];
   bool isLoading = true;
+  User? currentUser;
 
   @override
   void initState() {
     super.initState();
     loadBooks();
+    currentUser = FirebaseAuth.instance.currentUser;
   }
 
-//fetchapi
   void loadBooks() async {
     try {
       final books = await fetchWantToReadBooks();
@@ -36,21 +35,11 @@ class _MenuPageState extends State<MenuPage> {
         isLoading = false;
       });
     } catch (e) {
-      //print("Error loading books: $e");
-      //if (kDebugMode) {
-      //debugPrint("Error loading books: $e");
-    //}
+      debugPrint("Error loading books: $e");
     }
   }
 
-//navigatebook
   void navigateToBookDetails(int index) {
-
-    //get the rent& menu ปิดแล้วรันได้ dialog
-    //final rent = context.read<Rent>();
-    //final bookMenu = rent.books;
-
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -61,41 +50,129 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/loginpage');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    //get the rent & menu ปิดแล้วรันได้ dialog
-    //final rent = context.read<Rent>();
-    //final bookMenu = rent.books;
-
     return Scaffold(
       backgroundColor: Colors.grey[300],
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: primaryColor,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Library Menu',
+                    style: GoogleFonts.dmSerifDisplay(
+                      fontSize: 24,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  FutureBuilder<User?>(
+                    future: FirebaseAuth.instance.authStateChanges().first,
+                    builder: (context, snapshot) {
+                      final user = snapshot.data ?? currentUser;
+                      if (user != null) {
+                        return Text(
+                          'Hi ${user.displayName ?? user.email?.split('@')[0] ?? 'User'}',
+                          style: GoogleFonts.dmSerifDisplay(
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SearchPage(book: bookMenu),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text('Cart'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/cartpage');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: _logout,
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Icon(
-          Icons.menu,
-          color: Colors.grey[900],
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.grey[900]),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: Text(
           'Library Book',
-          style:  GoogleFonts.dmSerifDisplay(
-          fontSize: 20,
-         color : Colors.grey[900]),
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 20,
+            color: Colors.grey[900],
+          ),
         ),
-        //cart button
         actions: [
-        IconButton(onPressed: (){
-          Navigator.pushNamed(context, '/cartpage'); //to cart page
-        },
-        icon: Icon(Icons.shopping_cart,
-        color: Colors.grey[900],),
-        )]
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/cartpage');
+            },
+            icon: Icon(Icons.shopping_cart, color: Colors.grey[900]),
+          )
+        ],
       ),
-
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //promo banner
           Container(
             decoration: BoxDecoration(
               color: primaryColor,
@@ -108,9 +185,7 @@ class _MenuPageState extends State<MenuPage> {
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    //promo message
                     Text(
                       'Get 32% Promo',
                       style: GoogleFonts.dmSerifDisplay(
@@ -119,16 +194,12 @@ class _MenuPageState extends State<MenuPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    //redeem button
                     MyButton(
                       text: "Redeem",
                       onTap: () {},
                     )
                   ],
                 ),
-
-                //image
                 Image.asset(
                   'asset/book2.png',
                   height: 100,
@@ -136,11 +207,7 @@ class _MenuPageState extends State<MenuPage> {
               ],
             ),
           ),
-
           const SizedBox(height: 25),
-
-          
-          //search bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: TextField(
@@ -149,56 +216,36 @@ class _MenuPageState extends State<MenuPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => SearchPage(book: bookMenu)),
+                    builder: (context) => SearchPage(book: bookMenu),
+                  ),
                 );
               },
               decoration: InputDecoration(
                 hintText: "Search ..",
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(color: Colors.white),
+                  borderSide: const BorderSide(color: Colors.white),
                 ),
               ),
             ),
           ),
-          /*Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: TextField(
-                decoration: InputDecoration(
-              focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(20)),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(20)
-                ),
-                hintText: "Search .." 
-            ),
-          ),
-          ),*/
-
-
           const SizedBox(height: 25),
-
-          //menu list
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Text("Book Menu",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                  fontSize: 18,
-                )),
+            child: Text(
+              "Book Menu",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+                fontSize: 18,
+              ),
+            ),
           ),
-
-          const SizedBox(
-            height: 10,
-          ),
-          //api
+          const SizedBox(height: 10),
           Expanded(
             child: isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
                     itemCount: bookMenu.length,
                     itemBuilder: (context, index) {
@@ -210,27 +257,27 @@ class _MenuPageState extends State<MenuPage> {
                             borderRadius: BorderRadius.circular(15)),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(15),
-                          leading: Image.network(book.imagePath,
-                              width: 50, height: 70, fit: BoxFit.cover),
-                          title: Text(book.title), // ใช้ title แทน name
-                          subtitle: Text(
-                              "Author: ${book.author}"), // ใช้ author แทน price
-                          trailing: Column(
+                          leading: Image.network(
+                            book.imagePath,
+                            width: 50,
+                            height: 70,
+                            fit: BoxFit.cover,
+                          ),
+                          title: Text(book.title),
+                          subtitle: Text("Author: ${book.author}"),
+                          trailing: const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // ถ้าไม่มี rating ก็ไม่ต้องแสดง หรือใส่ค่าคงที่
                               Icon(Icons.star, color: Colors.amber, size: 18),
-                              Text("No rating"), // ถ้าไม่มี rating ใน API
+                              Text("No rating"),
                             ],
                           ),
-                          onTap: () =>
-                              navigateToBookDetails(index), // ✅ แบบนี้ถูกต้อง
+                          onTap: () => navigateToBookDetails(index),
                         ),
                       );
                     },
                   ),
           ),
-          //
         ],
       ),
     );

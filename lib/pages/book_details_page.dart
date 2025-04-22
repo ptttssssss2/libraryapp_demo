@@ -16,10 +16,8 @@ class BookDetailsPage extends StatefulWidget {
 }
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
-  //quantity
   int quantityCount = 0;
 
-  //decrement quantity
   void decrementQuantity() {
     setState(() {
       if (quantityCount > 0) {
@@ -28,7 +26,6 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     });
   }
 
-  //increment quantity
   void incrementQuantity() {
     setState(() {
       if (quantityCount < 5) {
@@ -37,43 +34,92 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     });
   }
 
-  //add cart use if เพิ่มเข้าตะกร้าตามเงื่อนไข
-  void addToCart() {
-    //only add when Its there
+  Future<void> addToCart() async {
     if (quantityCount > 0) {
-
-      //access to rent
       final rent = context.read<Rent>();
-
-      //add to cart
       rent.addToCart(widget.book, quantityCount);
 
-
-      //let the user know it was success
-      showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: primaryColor,
-      builder: (context) => AlertDialog(
-        content : Text("Succesfully Added", 
-        style:  GoogleFonts.dmSerifDisplay(
-        fontSize: 20, color: Colors.white),
-        textAlign: TextAlign.center,
-        ),
-        actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.done),
+      // ตัวแปรเก็บผลลัพธ์จาก Dialog
+      final shouldNavigateToCart = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            "Success!",
+            style: GoogleFonts.dmSerifDisplay(
+              fontSize: 24,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          content: Text(
+            "${widget.book.title}\nhas been added to your cart",
+            style: GoogleFonts.dmSerifDisplay(
+              fontSize: 18,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            SizedBox(
+              width: 120,
+              child: MyButton(
+                text: "Continue",
+                onTap: () {
+                  Navigator.pop(context, false); // ส่งค่า false กลับ
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 120,
+              child: MyButton(
+                text: "View Cart",
+                onTap: () {
+                  Navigator.pop(context, true); // ส่งค่า true กลับ
+                },
+              ),
             ),
           ],
-      ));
+        ),
+      ) ?? false; // ค่าเริ่มต้นเป็น false ถ้า Dialog ถูกปิดด้วยวิธีอื่น
+
+      // ถ้าผู้ใช้กด View Cart ให้ไปยังหน้าตะกร้า
+      if (shouldNavigateToCart) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/cartpage');
+      } else {
+        // ถ้ากด Continue ให้ปิดหน้า details
+        if (!mounted) return;
+        Navigator.pop(context);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            "Oops!",
+            style: GoogleFonts.dmSerifDisplay(),
+          ),
+          content: Text(
+            "Please select quantity first",
+            style: GoogleFonts.dmSerifDisplay(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -87,35 +133,28 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                // รูปปกหนังสือ
                 Center(
                   child: Image.network(
                     widget.book.imagePath,
                     height: 200,
+                    errorBuilder: (context, error, stackTrace) => 
+                      const Icon(Icons.broken_image, size: 100),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // ชื่อหนังสือ
                 Text(
                   widget.book.title,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 10),
-
-                // ชื่อผู้แต่ง
                 Text(
                   'Author: ${widget.book.author}',
                   style: const TextStyle(fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 10),
-
-                // Rating
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -124,19 +163,14 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     Text('No rating'),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-                // ปีที่พิมพ์ครั้งแรก
                 if (widget.book.firstPublishYear != null)
                   Text(
                     'First Published : ${widget.book.firstPublishYear}',
                     style: GoogleFonts.dmSerifDisplay(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-
                 const SizedBox(height: 20),
-
-                // วันที่เพิ่มเข้ารายการ
                 if (widget.book.loggedDate != null)
                   Text(
                     'Imported : ${widget.book.loggedDate}',
@@ -144,13 +178,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         fontSize: 16, fontStyle: FontStyle.italic),
                     textAlign: TextAlign.center,
                   ),
-                //
               ],
             ),
           ),
-          //
-
-          //price , quantity , add to cart button
           Container(
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
@@ -161,21 +191,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    //Price
-                    /*Text(
-                      "\฿" + widget.book.,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),*/
-
-                    //quantity
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end, //ชิดขวาจ้า
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        //minus button
                         Container(
                           decoration: BoxDecoration(
                             color: secondaryColor,
@@ -189,10 +207,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                             onPressed: decrementQuantity,
                           ),
                         ),
-
-                        SizedBox(width: 16),
-
-                        //quantity count
+                        const SizedBox(width: 16),
                         Text(
                           quantityCount.toString(),
                           style: const TextStyle(
@@ -201,10 +216,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                             fontSize: 18,
                           ),
                         ),
-
-                        SizedBox(width: 16),
-
-                        //plus button
+                        const SizedBox(width: 16),
                         Container(
                           decoration: BoxDecoration(
                             color: secondaryColor,
@@ -220,23 +232,16 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         ),
                       ],
                     ),
-                    //
-                    const SizedBox(height: 16),
-                    //add cart
-                    MyButton(
-                      text: "Add To Cart",
-                      onTap: () {
-                        addToCart();
-                      },
-                      //width: 120,
-                    ),
                   ],
+                ),
+                const SizedBox(height: 16),
+                MyButton(
+                  text: "Add To Cart",
+                  onTap: addToCart,
                 ),
               ],
             ),
           )
-
-          //
         ],
       ),
     );
