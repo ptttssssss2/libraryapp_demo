@@ -4,8 +4,9 @@ class MyButton extends StatelessWidget {
   final String text;
   final void Function()? onTap;
   //final double? width;
+  final TextStyle? textStyle;
   const MyButton(
-      {super.key, required this.text, required this.onTap,}); //this.width});
+      {super.key, required this.text, required this.onTap,this.textStyle,}); //this.width});
 
   @override
   Widget build(BuildContext context) {

@@ -13,9 +13,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
+  final _usernameController = TextEditingController(); //เก็บค่า
+  final _passwordController = TextEditingController(); 
+  final AuthService _authService = AuthService(); //เรียกใช้งาน
   bool _isLoading = false;
 
   @override
@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final success = await _authService.loginWithUsername(
+      final success = await _authService.loginWithUsername( //ข้างบน
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -228,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: _showResetPasswordDialog,
+                    onPressed: _showResetPasswordDialog, //ข้างบน
                     child: const Text(
                       'Forgot Password?',
                       style: TextStyle(color: Colors.white70),
@@ -245,7 +245,8 @@ class _LoginPageState extends State<LoginPage> {
                       )
                     : MyButton(
                         text: "Login",
-                        onTap: _login,
+                        onTap:
+                        _login,
                       ),
               ),
               const SizedBox(height: 20),

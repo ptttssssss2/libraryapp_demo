@@ -18,7 +18,7 @@ class BookDetailsPage extends StatefulWidget {
 class _BookDetailsPageState extends State<BookDetailsPage> {
   int quantityCount = 0;
 
-  void decrementQuantity() {
+  void decrementQuantity() {  //ลดจำนวน
     setState(() {
       if (quantityCount > 0) {
         quantityCount--;
@@ -26,7 +26,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     });
   }
 
-  void incrementQuantity() {
+  void incrementQuantity() { //เพิ่มจำนวน
     setState(() {
       if (quantityCount < 5) {
         quantityCount++;
@@ -43,7 +43,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       final shouldNavigateToCart = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
-        builder: (context) => AlertDialog(
+        builder: (context) => AlertDialog(  //pop up
           backgroundColor: primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -71,7 +71,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               child: MyButton(
                 text: "Continue",
                 onTap: () {
-                  Navigator.pop(context, false); // ส่งค่า false กลับ
+                  Navigator.pop(context, false); // ส่งค่า false = ไม่ไปตะกร้า
                 },
               ),
             ),
@@ -81,7 +81,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               child: MyButton(
                 text: "View Cart",
                 onTap: () {
-                  Navigator.pop(context, true); // ส่งค่า true กลับ
+                  Navigator.pop(context, true); // ส่งค่า true กลับตะกร้า
                 },
               ),
             ),
@@ -91,11 +91,11 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
       // ถ้าผู้ใช้กด View Cart ให้ไปยังหน้าตะกร้า
       if (shouldNavigateToCart) {
-        if (!mounted) return;
+        if (!mounted) return; // ถ้ายังอยู่ในหน้าปัจจุบัน ค่อยไปหน้า cart
         Navigator.pushReplacementNamed(context, '/cartpage');
       } else {
         // ถ้ากด Continue ให้ปิดหน้า details
-        if (!mounted) return;
+        if (!mounted) return; // ถ้ายังอยู่ ค่อย pop ออก
         Navigator.pop(context);
       }
     } else {
@@ -204,7 +204,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                               Icons.remove,
                               color: Colors.white,
                             ),
-                            onPressed: decrementQuantity,
+                            onPressed: decrementQuantity,   //void บน
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -227,7 +227,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                               Icons.add,
                               color: Colors.white,
                             ),
-                            onPressed: incrementQuantity,
+                            onPressed: incrementQuantity, //void ลบ
                           ),
                         ),
                       ],
@@ -237,7 +237,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 const SizedBox(height: 16),
                 MyButton(
                   text: "Add To Cart",
-                  onTap: addToCart,
+                  onTap: addToCart, //void
                 ),
               ],
             ),

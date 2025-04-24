@@ -7,6 +7,8 @@ import 'package:libraryapp/theme/colors.dart';
 import 'package:libraryapp/pages/book_details_page.dart';
 import 'package:libraryapp/pages/search_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:libraryapp/pages/history_page.dart';
+import 'package:libraryapp/pages/delete_account_page.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -17,8 +19,10 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   List<Book> bookMenu = [];
+  List<Book> recommendedBooks = [];
   bool isLoading = true;
   User? currentUser;
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -29,22 +33,113 @@ class _MenuPageState extends State<MenuPage> {
 
   void loadBooks() async {
     try {
-      final books = await fetchWantToReadBooks();
+      final books = await _apiService.fetchAllBooks();
       setState(() {
         bookMenu = books;
         isLoading = false;
+        recommendedBooks = _getRecommendedBooksWithoutDuplicates(bookMenu);
       });
     } catch (e) {
       debugPrint("Error loading books: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load books: ${e.toString()}')),
+      );
     }
   }
 
-  void navigateToBookDetails(int index) {
+  // เมธอดที่เพิ่มเข้ามาเพื่อแก้ไข error
+  void _navigateToBookDetails(Book book) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BookDetailsPage(
-          book: bookMenu[index],
+        builder: (context) => BookDetailsPage(book: book),
+      ),
+    );
+  }
+
+  List<Book> _getRecommendedBooksWithoutDuplicates(List<Book> allBooks,
+      {int count = 3}) {
+    if (allBooks.isEmpty) return [];
+
+    final availableBooks = allBooks
+        .where((book) => !bookMenu.any((menuBook) => menuBook.id == book.id))
+        .toList();
+
+    final sourceBooks =
+        availableBooks.length >= count ? availableBooks : allBooks;
+
+    final shuffled = List<Book>.from(sourceBooks)..shuffle();
+    return shuffled.take(count).toList();
+  }
+
+  void _refreshRecommendedBooks() {
+    setState(() {
+      recommendedBooks = _getRecommendedBooksWithoutDuplicates(bookMenu);
+    });
+  }
+
+  void _showRecommendedBooks(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Recommended For You",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () {
+                    _refreshRecommendedBooks(); //ดึง void บนมาใช้ _refreshRecommendedBooks
+                    Navigator.pop(context);
+                    _showRecommendedBooks(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: recommendedBooks.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No new books to recommend',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: recommendedBooks.length,
+                      itemBuilder: (context, index) {
+                        final book = recommendedBooks[index];
+                        return ListTile(
+                          leading: Image.network(
+                            book.imagePath,
+                            width: 40,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.book, size: 40),
+                          ),
+                          title: Text(book.title),
+                          subtitle: Text(book.author),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _navigateToBookDetails(book);
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -87,6 +182,7 @@ class _MenuPageState extends State<MenuPage> {
                       color: Colors.white,
                     ),
                   ),
+
                   const SizedBox(height: 10),
                   FutureBuilder<User?>(
                     future: FirebaseAuth.instance.authStateChanges().first,
@@ -107,6 +203,8 @@ class _MenuPageState extends State<MenuPage> {
                 ],
               ),
             ),
+
+            //แถบข้าง สามขีด
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Home'),
@@ -115,6 +213,7 @@ class _MenuPageState extends State<MenuPage> {
                 Navigator.pushReplacementNamed(context, '/home');
               },
             ),
+
             ListTile(
               leading: const Icon(Icons.search),
               title: const Text('Search'),
@@ -124,10 +223,12 @@ class _MenuPageState extends State<MenuPage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => SearchPage(book: bookMenu),
+                    // ส่งข้อมูล bookMenu ไปยัง SearchPage ผ่าน constructor
                   ),
                 );
               },
             ),
+
             ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Cart'),
@@ -136,7 +237,28 @@ class _MenuPageState extends State<MenuPage> {
                 Navigator.pushNamed(context, '/cartpage');
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.assignment_rounded),
+              title: const Text('History'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/historypage');
+              },
+            ),
             const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete Account',
+                  style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const DeleteAccountPage()),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Logout', style: TextStyle(color: Colors.red)),
@@ -164,18 +286,24 @@ class _MenuPageState extends State<MenuPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/cartpage');
+              Navigator.pushNamed(context, '/cartpage'); //ไปหน้าตะกร้า
             },
             icon: Icon(Icons.shopping_cart, color: Colors.grey[900]),
           )
         ],
       ),
       body: Column(
+        //ตกแต่ง
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             decoration: BoxDecoration(
               color: primaryColor,
+              image: const DecorationImage(
+                image: AssetImage('asset/book3.jpg'),
+                fit: BoxFit.cover,
+                opacity: 0.4,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             margin: const EdgeInsets.symmetric(horizontal: 25),
@@ -187,26 +315,45 @@ class _MenuPageState extends State<MenuPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Get 32% Promo',
+                      '────୨ৎ────',
                       style: GoogleFonts.dmSerifDisplay(
                         fontSize: 20,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    
+
+          
+
+
+                    const SizedBox(height: 20), // แนะนำนส
                     MyButton(
-                      text: "Redeem",
-                      onTap: () {},
+                      text: "Recommended For You",
+                      onTap: () {
+                        if (bookMenu.isNotEmpty) {
+                          _showRecommendedBooks(context); //จากด้านบน
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar( //popup
+                            const SnackBar(content: Text('No books available')),
+                          );
+                        }
+                      },
+                        textStyle: GoogleFonts.dmSerifDisplay(
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+              
                     )
+                    
                   ],
                 ),
-                Image.asset(
-                  'asset/book2.png',
-                  height: 100,
-                )
               ],
             ),
           ),
+
+
+
+        //search bar
           const SizedBox(height: 25),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -230,6 +377,8 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
           ),
+
+          // Book Menu
           const SizedBox(height: 25),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -242,41 +391,53 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
           ),
+
+          //book ด้านล่าง
           const SizedBox(height: 10),
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: bookMenu.length,
-                    itemBuilder: (context, index) {
-                      final book = bookMenu[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(15),
-                          leading: Image.network(
-                            book.imagePath,
-                            width: 50,
-                            height: 70,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text(book.title),
-                          subtitle: Text("Author: ${book.author}"),
-                          trailing: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.star, color: Colors.amber, size: 18),
-                              Text("No rating"),
-                            ],
-                          ),
-                          onTap: () => navigateToBookDetails(index),
+                : bookMenu.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No books available',
+                          style: TextStyle(color: Colors.grey[600]),
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        itemCount: bookMenu.length,
+                        itemBuilder: (context, index) {
+                          final book = bookMenu[index]; //book.dart
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 25, vertical: 10),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(15),
+                              leading: Image.network(
+                                book.imagePath,
+                                width: 50,
+                                height: 70,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.book, size: 50),
+                              ),
+                              title: Text(book.title),
+                              subtitle: Text("Author: ${book.author}"),
+                              trailing: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.star,
+                                      color: Colors.amber, size: 18),
+                                  Text("No rating"),
+                                ],
+                              ),
+                              onTap: () => _navigateToBookDetails(book), //กดแล้วไป book_details
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

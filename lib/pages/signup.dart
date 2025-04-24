@@ -24,14 +24,14 @@ class _SignupPageState extends State<SignupPage> {
   bool _isSuccess = false;
 
   @override
-  void dispose() {
+  void dispose() { //ทำความสะอาด เคลียร์
     _emailController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _signUp() async {
+  Future<void> _signUp() async { //ผ่านการตรวจสอบ
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -259,7 +259,7 @@ class _SignupPageState extends State<SignupPage> {
                       )
                     : MyButton(
                         text: "Sign Up",
-                        onTap: _signUp,
+                        onTap: _signUp, //เข้า database
                       ),
               ),
               const SizedBox(height: 20),

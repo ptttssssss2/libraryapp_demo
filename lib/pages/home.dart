@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:libraryapp/components/button.dart';
-//import 'package:libraryapp/pages/menu_page.dart';
+import 'package:libraryapp/theme/colors.dart'; // Make sure to import your primaryColor
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -9,59 +9,87 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 196, 162, 176),
-      body: Center(
-        // จัดให้อยู่กลางทั้งแนวตั้งและแนวนอน
-        child: Column(
-          
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // กลางแนวนอน
-          children: [
-            const SizedBox(height: 120),
-            //shopname
-            Text(
-              "•´¯`•.  ｍａｇｏｒｔａ   .•`¯´•",
-              style: GoogleFonts.dmSerifDisplay(fontSize: 28,
-              color: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          color: primaryColor,
+          image: DecorationImage(
+            image: const AssetImage('asset/bookshelf2.jpg'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              primaryColor.withOpacity(0.7), // ปรับความโปร่งใสของสีที่ซ้อนทับ
+              BlendMode.softLight,
             ),
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+
+                const SizedBox(height: 40),
+                // Welcome text
+                Text(
+                  "Welcome!",
+                  style: GoogleFonts.dmSerifDisplay(
+                    fontSize: 28,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 10,
+                        color: Colors.black.withOpacity(0.5),
+                        offset: const Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                ),
+
+
+                const SizedBox(height: 30),
+                // Book stack image with transparent container
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1), // Slightly transparent container
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Image.asset(
+                    'asset/cook-book.png',
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+
+
+
+                const SizedBox(height: 30),
+                // Decorative text
+                Text(
+                  "·.¸¸·´¯`·.¸¸.ஐ ...¤¸¸.·´¯`·.¸·.>>--» [[ ♫~*",
+                  style: GoogleFonts.dmSerifDisplay(
+                    fontSize: 15,
+                    color: Colors.white,
+                  ),
+                ),
+
+
+                const SizedBox(height: 40),
+                // Get Started button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: MyButton( //จาก button.dart
+                    text: "Get Started", //require text
+                    onTap: () { //กดไปเมนู
+                      Navigator.pushNamed(context, '/menupage'); //require onTap
+                    },
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 2),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Image.asset(
-                'asset/book-stack.png',
-                width: 150,
-                height: 150,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 10),
-            //shopdetails
-            Text(
-              "Ｔｈｅ Ｉｎｃｒｅｄｉｂｌｉｌｉｔｙ ｏｆ  ｂｏｏｋｓ",
-              style: GoogleFonts.dmSerifDisplay(fontSize: 20,
-              color: Colors.white,
-             ),
-            ),
-            const SizedBox(height: 10),
-            //shopdescribe
-            Text(
-              "·.¸¸·´¯`·.¸¸.ஐ ...¤¸¸.·´¯`·.¸·.>>--» [[ ♫~*",
-              style: GoogleFonts.dmSerifDisplay(fontSize: 10,
-              color: Colors.white,
-             ),
-            ),
-            //button
-            const SizedBox(height: 30),
-            Center(
-            child: MyButton(text: "Get Started",
-            onTap :(){
-              //go to menu page
-              Navigator.pushNamed(context, '/menupage');
-            },
-            ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:libraryapp/models/api_service.dart';
+import 'package:libraryapp/pages/history_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,8 @@ Future<void> main() async {
 
   // โหลดและบันทึกหนังสือเมื่อเริ่มแอป
   try {
-    await fetchWantToReadBooks();
+    final apiService = ApiService();
+    await apiService.fetchWantToReadBooks();
   } catch (e) {
     debugPrint('Error loading books: $e');
   }
@@ -49,32 +51,18 @@ class MyApp extends StatelessWidget {
           }
           
           if (snapshot.hasData) {
-            return WillPopScope(
-              onWillPop: () async => false,
-              child: const MainNavigation(),
-            );
+            return const MainNavigation();
           }
           
           return const LoginPage();
         },
       ),
       routes: {
-        '/main': (context) => WillPopScope(
-              onWillPop: () async => false,
-              child: const MainNavigation(),
-            ),
-        '/home': (context) => WillPopScope(
-              onWillPop: () async => false,
-              child: const Home(),
-            ),
-        '/menupage': (context) => WillPopScope(
-              onWillPop: () async => false,
-              child: const MenuPage(),
-            ),
-        '/cartpage': (context) => WillPopScope(
-              onWillPop: () async => false,
-              child: const CartPage(),
-            ),
+        '/main': (context) => const MainNavigation(),
+        '/home': (context) => const Home(),
+        '/menupage': (context) => const MenuPage(),
+        '/cartpage': (context) => const CartPage(),
+        '/historypage': (context) => const HistoryPage(),
         '/loginpage': (context) => const LoginPage(),
         '/registerpage': (context) => const SignupPage(),
       },
@@ -90,7 +78,7 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+  int _currentIndex = 0; // ตัวแปรเก็บ index ของหน้าใน bottom navigation
 
   final List<Widget> _pages = [
     const MenuPage(),
@@ -101,14 +89,16 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WillPopScope(
-        onWillPop: () async => false,
+      // ใช้ PopScope เพื่อป้องกันไม่ให้ผู้ใช้กด back ออกไปจากหน้าโดยไม่ได้ตั้งใจ
+      body: PopScope(
+        canPop: false,
         child: _pages[_currentIndex],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        currentIndex: _currentIndex, // กำหนด index ที่แสดงอยู่ปัจจุบัน
         onTap: (index) {
           setState(() {
+          // เมื่อผู้ใช้กดที่ปุ่มในแถบด้านล่าง ให้เปลี่ยนหน้า
             _currentIndex = index;
           });
         },

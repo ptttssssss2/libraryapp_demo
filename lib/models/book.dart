@@ -1,22 +1,22 @@
-import 'package:flutter/foundation.dart';
-
 class Book {
-  final String id;
+  final String id; // เปลี่ยนเป็น final ตามเดิม
   final String title;
   final String author;
   final String imagePath;
   final String? rating;
   final int? firstPublishYear;
   final String? loggedDate;
+  final bool isRecommended; // เปลี่ยนกลับเป็น final
 
   Book({
+    required this.id, // กำหนดให้ต้องระบุ id เสมอ
     required this.title,
     required this.author,
     required this.imagePath,
-    this.id = '',
     this.rating,
     this.firstPublishYear,
     this.loggedDate,
+    this.isRecommended = false,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -31,17 +31,17 @@ class Book {
         ? 'https://covers.openlibrary.org/b/id/$coverId-M.jpg'
         : 'https://via.placeholder.com/150';
 
-    if (kDebugMode) {
-      debugPrint('📘 Title: $title | 👤 Author: $author');
-    }
+    // ใช้ coverId เป็น ID ถ้ามี ไม่เช่นนั้นใช้ title + author แทน
+    final id = coverId ?? '${title}_${author}'.hashCode.toString();
 
     return Book(
-      id: work['id'] ?? title.hashCode.toString(),
+      id: id,
       title: title,
       author: author,
       imagePath: imagePath,
       firstPublishYear: work['first_publish_year'],
       loggedDate: json['logged_date'],
+      isRecommended: json['is_recommended'] ?? false,
     );
   }
 }

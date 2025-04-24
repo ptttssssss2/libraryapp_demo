@@ -33,7 +33,7 @@ class CartPage extends StatelessWidget {
       final returnDate = now.add(const Duration(days: 14));
 
       for (final book in books) {
-        final docRef = FirebaseFirestore.instance.collection('borrowed_books').doc();
+        final docRef = FirebaseFirestore.instance.collection('borrowed_books').doc(); //เข้าDatabase
         
         batch.set(docRef, {
           'userId': user.uid,
@@ -55,7 +55,7 @@ class CartPage extends StatelessWidget {
       });
 
       await batch.commit();
-      rent.clearCart();
+      rent.clearCart(); //clear basket
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Books borrowed successfully!')),
@@ -149,7 +149,7 @@ class CartPage extends StatelessWidget {
                               ],
                             ),
                             title: Text(
-                              book.title,
+                              book.title,//title
                               style: const TextStyle(
                                 color: Colors.white, 
                                 fontWeight: FontWeight.bold
@@ -159,13 +159,13 @@ class CartPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  book.author,
+                                  book.author, //author
                                   style: TextStyle(
                                     color: Colors.grey[200],
                                   ),
                                 ),
                                 Text(
-                                  'Quantity: $quantity',
+                                  'Quantity: $quantity',//ดึงมา
                                   style: const TextStyle(
                                     color: Colors.white70,
                                   ),
@@ -173,7 +173,7 @@ class CartPage extends StatelessWidget {
                               ],
                             ),
                             trailing: IconButton(
-                              onPressed: () => removeFromCart(book, context),
+                              onPressed: () => removeFromCart(book, context),//ดึงมาใชั
                               icon: Icon(
                                 Icons.delete,
                                 color: Colors.grey[300],
@@ -191,7 +191,7 @@ class CartPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Total Items: ${rent.totalItems}',
+                      'Total Items: ${rent.totalItems}',//จาก rent.dart
                       style: GoogleFonts.dmSerifDisplay(
                         fontSize: 18,
                         color: Colors.grey[800],
@@ -202,7 +202,7 @@ class CartPage extends StatelessWidget {
                       width: double.infinity,
                       child: MyButton(
                         text: "Borrow Now",
-                        onTap: () => _borrowBooks(rent, context),
+                        onTap: () => _borrowBooks(rent, context),//จากดัานบน
                       ),
                     ),
                   ],

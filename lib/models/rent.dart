@@ -13,19 +13,19 @@ class Rent extends ChangeNotifier {
   // รับจำนวนหนังสือที่ไม่ซ้ำในตะกร้า
   int get uniqueItemsCount => _cartItems.length;
 
-  // เพิ่มหนังสือลงตะกร้า
+  // เพิ่มหนังสือลงตะกร้า เริ้มต้น 1
   void addToCart(Book book, [int quantity = 1]) {
-    if (_cartItems.containsKey(book)) {
+    if (_cartItems.containsKey(book)) { //ตรวจสอบว่าในตะกร้ามีหนังสือเล่มนี้อยู่หรือไม่
       _cartItems[book] = _cartItems[book]! + quantity;
     } else {
       _cartItems[book] = quantity;
     }
-    notifyListeners();
+    notifyListeners(); //show oop pls select
   }
 
   // ลบหนังสือออกจากตะกร้า (ลดจำนวนทีละ 1)
   void removeFromCart(Book book) {
-    if (_cartItems.containsKey(book)) {
+    if (_cartItems.containsKey(book)) { //ตรวจสอบว่าในตะกร้ามีหนังสือเล่มนี้อยู่หรือไม่
       if (_cartItems[book]! > 1) {
         _cartItems[book] = _cartItems[book]! - 1;
       } else {
@@ -38,7 +38,7 @@ class Rent extends ChangeNotifier {
   // ลบหนังสือออกจากตะกร้าทั้งหมด (ไม่ว่าจะมีกี่เล่ม)
   void removeAllCopiesFromCart(Book book) {
     if (_cartItems.containsKey(book)) {
-      _cartItems.remove(book);
+    _cartItems.remove(book);
       notifyListeners();
     }
   }
